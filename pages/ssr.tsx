@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { NextPage, GetStaticProps } from 'next'
+import { NextPage, GetServerSideProps } from 'next'
 
 import { Layout } from '../components/Layout'
 import { supabase } from '../utils/supabase'
 import { Task, Notice } from '../types/types'
 
-export const getStaticProps: GetStaticProps = async () => {
-    console.log('getStaticProps/ssg incoked')
+export const getServerSideProps: GetServerSideProps = async () => {
+    console.log('getServerSideProps/ssr incoked')
 
     const { data: tasks } = await supabase
         .from('todos')
@@ -29,11 +29,11 @@ type StaticProps = {
     notices: Notice[]
 }
 
-const Ssg: NextPage<StaticProps> = ({ tasks, notices }) => {
+const Ssr: NextPage<StaticProps> = ({ tasks, notices }) => {
     const router = useRouter()
     return (
-        <Layout title="SSG">
-            <p className="mb-3 text-blue-500">SSG</p>
+        <Layout title="SSR">
+            <p className="mb-3 text-green-500">SSR</p>
             <ul className="mb-3">
                 {tasks.map((task) => (
                     <li key={task.id}>
@@ -48,20 +48,20 @@ const Ssg: NextPage<StaticProps> = ({ tasks, notices }) => {
                     </li>
                 ))}
             </ul>
-            <Link href="/ssr" prefetch={false} className="my-3 text-xs">
-                Link to SSR
+            <Link href="/ssg" prefetch={false} className="my-3 text-xs">
+                    Link to SSG
             </Link>
             <Link href="/isr" prefetch={false} className="mb-3 text-xs">
-                Link to ISR
+                    Link to ISR
             </Link>
-            <button className="mb-3 text-xs border px-2 py-2 rounded bg-blue-500 text-white cursor-pointer hover:bg-gray-200" onClick={() => router.push('/ssr')}>
-                Return to SSR
+            <button className="mb-3 text-xs border px-2 py-2 rounded bg-green-500 text-white cursor-pointer hover:bg-gray-200" onClick={() => router.push('/ssg')}>
+                Return to SSG
             </button>
-            <button className="mb-3 text-xs border px-2 py-2 rounded bg-blue-500 text-white cursor-pointer hover:bg-gray-200" onClick={() => router.push('/isr')}>
+            <button className="mb-3 text-xs border px-2 py-2 rounded bg-green-500 text-white cursor-pointer hover:bg-gray-200 " onClick={() => router.push('/isr')}>
                 Return to ISR
             </button>
         </Layout>
     )
 }
 
-export default Ssg
+export default Ssr
