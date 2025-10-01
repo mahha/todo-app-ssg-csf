@@ -1,0 +1,6 @@
+org/
+solution/
+node_modules/
+build/
+dist/
+.next/
