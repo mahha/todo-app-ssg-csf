@@ -108,3 +108,38 @@ const Ssg: NextPage<StaticProps> = ({ tasks, notices }) => {
 }
 ```
 
+* Supabaseの利用方法 (SSR編)
+@pages/ssr.tsx
+- 基本的にSSGと同じ構造
+getStaticPropsの代わりにgetServerSidePropsで作成すればOK
+
+* Supabaseの利用方法 (CSR編)
+@pages/csr.tsx
+- Csr の定義の中で useEffectでTask[],Notice[]取得　
+- usrStateで状態変数を定義してTasks[],Noticesを代入
+- StaticPropsやServerSidePropsで返したのと同じ名前の状態変数に
+　しておくとレンダリングの中はSSG/SSRと同じでOK
+
+* Supabaseの利用方法 (ISR編)
+@pages/isr.tsx
+- 基本的にSSGと同じ. getStaticPropsが返すpropsにrevalidate属性を付ける. (再レンダリング最小間隔)
+```tsx
+    return {
+        props: { tasks, notices }, revalidate: 5,
+    }
+```
+** ISRのメリット.
+- SSGでビルド時にレンダリングするが内容を変更することができない.
+- ISRは以下の２つの時に再生成を行う。ISRが再レンダリングされた時
+1. ISRのページにアクセスした時
+2. next/link, next/routerでプリフェッチされた時
+- 多ユーザアクセスに有利.最初のアクセスは古いHTMLになるが以降のアクセスは更新されたHTMLになる
+
+
+* Networkのデバッグ
+** やりたい事1: CSRではSupabaseのデータが含まれていないことを確認する
+- 解決: 開発者ツールの "Network"のログで csrをクリックし Preview を見る
+この時点では Task/Noticeがない
+** やりたい事2: クライアント側からのデータベースアクセスを見る
+- 解決: Filterで "Fetch/XHR"をクリックし、nameでクエリを指定して "Response"を
+選択するとデータベースから取得したJSONが見れる
