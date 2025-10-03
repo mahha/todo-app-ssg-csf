@@ -153,3 +153,8 @@ getStaticPropsの代わりにgetServerSidePropsで作成すればOK
 git remote add origin https://github.com/mahha/todo-app-ssg-csf.git
 git branch -M main
 git push -u origin main
+1行目：ローカルと GitHub 上のリポジトリが接続されます
+2行目: 現在のブランチの名前を main に変更する. -Mは強制
+3行目: ローカルの main ブランチをリモートの origin（GitHub）へ送信（push）
+-u オプションは「アップストリームを設定する」意味です。これにより次回以降は単に git push や git pull だけで origin main に対応してくれるようになります。
+
