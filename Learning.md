@@ -143,3 +143,13 @@ getStaticPropsの代わりにgetServerSidePropsで作成すればOK
 ** やりたい事2: クライアント側からのデータベースアクセスを見る
 - 解決: Filterで "Fetch/XHR"をクリックし、nameでクエリを指定して "Response"を
 選択するとデータベースから取得したJSONが見れる
+
+* GitHubへの登録とVercelデプロイ
+** GitへPUSH
+-  Github HPでCreate New repo
+- 表示されるQuick setup の 以下の枠のコマンドをコピー
+"push an existing repository from the command line"
+- Cursorのコンソール上でコピーしたコマンドを実行
+git remote add origin https://github.com/mahha/todo-app-ssg-csf.git
+git branch -M main
+git push -u origin main
