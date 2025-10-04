@@ -12,4 +12,14 @@
 - Case3: getStaticPropsの importが警告を受ける
 　原因: getStaticPropsは関数の宣言だけで良い特殊な関数の為
   解決: importを削除する
-  　
+
+- Case4: QUeryClientProviderの子要素が正しくないとビルドエラーになる
+  セクション2/No17
+  原因: react-queryのバージョンが古い
+  対策: @transtack/react-queryに変更する
+  npm uninstall react-query
+  rm -rf node_modules package-lock.json
+  npm install
+  npm install @tanstack/react-query @tanstack/react-query-devtools
+  ※react-queryを開発していた Tanner Linsley 氏が開発しているOSSらしい
+

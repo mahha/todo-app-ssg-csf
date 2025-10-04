@@ -157,4 +157,88 @@ git push -u origin main
 2行目: 現在のブランチの名前を main に変更する. -Mは強制
 3行目: ローカルの main ブランチをリモートの origin（GitHub）へ送信（push）
 -u オプションは「アップストリームを設定する」意味です。これにより次回以降は単に git push や git pull だけで origin main に対応してくれるようになります。
+** Vercelへデプロイ
+- vercelへGitHubアカウントでログイン
+- Nee Project
+- GitHubのプロジェクトを選択
+- 必要に応じて環境変数の設定 (今回は.env_localのsupabase API URL/KEY)
+- Deployボタンをクリック
+- 成功したらDashboardに移動
+- DomainsにURLがあるのでクリック or コピーして開く
 
+* Supabaseの認証
+** Sign-in / Sign-out 
+- 以下の非同期関数を定義しておきボタンなどに紐づける
+```tsx
+    const signOut = async () => {
+        await supabase.auth.signOut()
+    }
+```
+** defaultオプション
+- _app.tsxに以下の定義を入れておくとディフォルトオプション設定できる
+```tsx
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false, // エラーが発生した場合はリトライしない
+      refetchOnWindowFocus: false, // ウィンドウがフォーカスされた時に再フェッチしない
+    }
+  }
+})
+```
+** ログイン状態の認識 @_app.tsx
+- supabase.auth.user()でユーザー情報の取得可能
+- ログイン状態に応じてuseRouter()のpushでページ遷移できる
+```tsx
+  const validateSession = async () => {
+    const user = supabase.auth.user()
+    if (user && pathname === '/') {
+      push('/dashboard')
+    }
+  }
+```
+
+** ログイン状態変更のフック @_app.tsx
+- 以下の関数を定義しておくとログイン状態の変更に反応してページ遷移などが可能
+```tsx
+  supabase.auth.onAuthStateChange((event, _) => {
+    if (event === 'SIGNED_IN' && pathname === '/') {
+      push('/dashboard')
+    } else if (event === 'SIGNED_OUT') {
+      push('/')
+    }
+  })
+```
+
+** ログイン/ユーザ登録の実装 @hooks/useMutateAuth.ts
+- useMutationの mutationFn: onError: onSuccess: など作法に従って
+実際のアクセス(supabaseとか)を記述していく
+- useQueryは読み出し用なのでキャッシュするが、useMutationは更新用なのでキャッシュしない
+- 認証用のhookを作成し、supabaseへのsignin/signupを実装し、hookする関数としてreturnする
+- その他、認証に必要なemail/password/registerMutationなどもセットしておく
+```tsx
+    // ログイン
+    const loginMutation = useMutation({
+        mutationFn: async () => {
+            const { error } = await supabase.auth.signIn({ email, password })
+            if (error) throw new Error(error.message)
+        },
+        onError: (err: any) => {
+            alert(err.message)
+            reset()
+        },
+    })
+    return {loginMutation}
+```
+- Tips : group css. 親要素にgroupを付けると、親要素のイベントに対して子要素の変化を定義できる
+以下は親要素のボタンのhoverに対して子要素のsvgアイコンの透明度を変化させている
+```tsx
+<button class="group flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+  <span>保存</span>
+  <!-- アイコンは通常は透明、親 hover 時に不透明 -->
+  <svg class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" 
+       fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+  </svg>
+</button>
+```
