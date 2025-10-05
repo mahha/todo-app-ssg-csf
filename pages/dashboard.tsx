@@ -16,9 +16,9 @@ const Dashboard: NextPage = () => {
     }
     return (
         <Layout title="Dashboard">
-            {/* <h1 className="text-xl font-bold">
+            <h1 className="text-xl font-bold">
                 Now Login User: {supabase.auth.user()?.email}
-            </h1> */}
+            </h1>
             <div className="flex justify-center items-center space-x-4">
                 <p className="text-lg">Logout</p>
                 <LogoutIcon

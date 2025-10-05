@@ -359,4 +359,10 @@ useStateでログインしているidを設定.各アイテムのuser_idと等�
 - Noticeのようにログインしている全員に閲覧許可する場合は
 updateテンプレートでselectに変更すると可能. 動画　6:56
 
+** デプロイ
+git pushするとvercelでデプロイされる
+
+** Test用のID **
+user1@test1.com / hogehoge1
+user2@test.com / hogehoge2
 
