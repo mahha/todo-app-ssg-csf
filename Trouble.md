@@ -23,3 +23,23 @@
   npm install @tanstack/react-query @tanstack/react-query-devtools
   ※react-queryを開発していた Tanner Linsley 氏が開発しているOSSらしい
 
+- Case5: QueryClientのキャッシュがクリアできない
+  セクション2/No21
+  原因: 仕様が変更になっている
+  対策: queryKey:を追加する
+  旧
+  ```tsx
+    queryClient.removeQueries('notices')
+    queryClient.removeQueries('todos')
+  ```
+  新
+  ```tsx
+    queryClient.removeQueries({ queryKey: ['notices'] })
+    queryClient.removeQueries({ queryKey: ['todos'] })
+    queryClient.clear()
+  ```
+- Case6: QueryClientのキャッシュがクリアできない その２
+  セクション2/No21
+  原因: removeQueriesのkeyを間違えて'tasks'にしていた
+  対策: keyを'todos'に修正. LLMの推奨でclear()も付加. 
+  　　　clear()だけでも良いらしい. keyを間違えても怒られない

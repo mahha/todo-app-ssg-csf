@@ -20,7 +20,7 @@ export const useQueryTasks = () => {
     return useQuery<Task[], Error>({    // <Task[], Error>はuseQueryTasks戻り型のジェネリック
         queryKey: ['todos'],    // キャッシュのキー
         queryFn: getTasks,      // キャッシュのデータを取得する関数
-        staleTime: Infinity,    // キャッシュの有効期限
+        staleTime: 0,           // キャッシュの有効期限
     })
 }
 

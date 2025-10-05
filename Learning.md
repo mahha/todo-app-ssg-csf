@@ -337,3 +337,26 @@ export const useMutateTask = () => {
 -- 入力フォーム (EditedTaskの状態に応じて Input内容やButtonのラベルが変わる)
 -- タスクアイテム (編集/ゴミ箱ボタン付き. mutationに紐づく)
 - _app.tsx に <ReactQueryDevtools/>を追加しているので解析ツールボタンがある
+-- Noticeも同様。但しNoticeItemはユーザー毎の編集権限という概念がある
+--- @components/NoticeItem.tsx
+useStateでログインしているidを設定.各アイテムのuser_idと等しい時だけ表示
+```tsx
+    const [userId, setUserId] = useState<string | undefined>('')
+
+    useEffect(() => {
+        setUserId(supabase.auth.user()?.id)
+    }, [])
+
+    {userId === user_id && (
+        // ボタン表示
+    )}
+```
+
+** RLS (Row Level Securiry) Section2:No.21
+- supabaseのテーブル(todos/notices)のRLSをEnableにする⇒全拒否
+- supabase上でCreate Policy でINSERT/DELETE/UPDATE/SELECTを設定する
+-- UPDATEだけはCheckを付けるのに注意
+- Noticeのようにログインしている全員に閲覧許可する場合は
+updateテンプレートでselectに変更すると可能. 動画　6:56
+
+
