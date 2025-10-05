@@ -9,11 +9,14 @@ export const useMutateTask = () => {
 
     const createTaskMutation = useMutation({
         mutationFn: async (task: Omit<Task, 'id' | 'created_at'>) => {
-            const { data, error } = await supabase.from('todos').insert(task)
+            const { data, error } = await supabase
+                .from('todos')
+                .insert(task)
+                .select()   // supabaseV2用にselect()を追加
             if (error) throw new Error(error.message)
             return data
         },
-        onSuccess: (res) => {
+        onSuccess: (res) => {   // resはmutationFnでreturnした値.つまり追加したデータ
             const previousTodos = queryClient.getQueryData<Task[]>(['todos'])
             if (previousTodos) {
                 queryClient.setQueryData(['todos'], [...previousTodos, res[0]])
@@ -32,9 +35,12 @@ export const useMutateTask = () => {
                 .from('todos')
                 .update({ title: task.title })
                 .eq('id', task.id)
+                .select()   // supabaseV2用にselect()を追加
             if (error) throw new Error(error.message)
             return data
         },
+        // onSuccessはデータベース更新が成功した時に実行される
+        // variablesはmutationFnに渡した引数.つまり更新したデータ
         onSuccess: (res, variables) => {
             const previousTodos = queryClient.getQueryData<Task[]>(['todos'])
             if (previousTodos) {
@@ -47,6 +53,7 @@ export const useMutateTask = () => {
             }
             reset()
         },
+        // onErrorはデータベース更新が失敗した時に実行される
         onError: (err: any) => {
             alert(err.message)
             reset()
@@ -55,15 +62,20 @@ export const useMutateTask = () => {
 
     const deleteTaskMutation = useMutation({
         mutationFn: async (id: string) => {
-            const {data, error} = await supabase.from('todos').delete().eq('id', id)
+            const { data, error } = await supabase
+                .from('todos')
+                .delete()
+                .eq('id', id)
+                .select()   // supabaseV2用にselect()を追加
             if (error) throw new Error(error.message)
             return data
         },
+        // variablesはmutationFnに渡した引数.つまり削除したデータのid
         onSuccess: (_, variables) => {
             const previousTodos = queryClient.getQueryData<Task[]>(['todos'])
             if (previousTodos) {
                 queryClient.setQueryData(
-                    ['todos'], 
+                    ['todos'],
                     previousTodos.filter(task => task.id !== variables))
             }
             reset()

@@ -15,7 +15,9 @@ export const useQueryTasks = () => {
         return data
     }
 
-    return useQuery<Task[], Error>({
+    // useQueryの実行結果オブジェクト{Tasks[],Error,isLoasing,...}を返す.
+    // こうする事で呼び出し側から間接的にuseQueryを使う事ができる
+    return useQuery<Task[], Error>({    // <Task[], Error>はuseQueryTasks戻り型のジェネリック
         queryKey: ['todos'],    // キャッシュのキー
         queryFn: getTasks,      // キャッシュのデータを取得する関数
         staleTime: Infinity,    // キャッシュの有効期限

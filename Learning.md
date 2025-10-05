@@ -242,3 +242,98 @@ const queryClient = new QueryClient({
   </svg>
 </button>
 ```
+
+* データベースへの新規登録/更新 No.18
+@store.ts
+** GUIで編集・Submitしたデータを状態変数に保持する
+- zustandを使用する
+- RecoilやReduxのように状態変数を管理するための軽量ライブラリ
+- 状態変数とcreate(),set(),get()を持つ
+- 状態変数と操作関数をStateとして定義し、useXXXとしてexportすると他の場所で参照できる
+```tsx
+type State = {
+    editedTask: EditedTask
+    editedNotice: EditedNotice
+    updateEditedTask: (editedTask: EditedTask) => void
+    updateEditedNotice: (editedNotice: EditedNotice) => void
+    resetEditedTask: () => void
+    resetEditedNotice: () => void
+}
+
+const useStore = create<State>((set: any) => ({
+    // 状態変数と更新関数の定義
+}))
+
+export default useStore
+```
+
+** データベース取得のカスタムhook
+- EditedTask/EditedNotice型を作成する.データベースで書き換えるべきでない情報を Omit<>で削る
+- DB参照は useQuery '@tanstack/react-query'
+- 実装例 @hooks/useQueryTasks.ts
+- カスタムhookであるuseQUeryTasks内でDBアクセス関数を定義してhookであるuseQueryを実行し、
+useQueryが返してきたオブジェクト({Tasks[],Error,isLoading,...})をカスタムhookの結果としても
+returnする. こうする事で呼び出し側から間接的にuseQueryを使う事ができる
+- useQueryはreact内部でキャッシュを持っており、再レンダリング時に不要なデータベースアクセスを防止する
+```tsx
+export const useQueryTasks = () => {
+    const getTasks = async () => {
+        const { data, error } = await supabase
+            .from('todos')
+            .select('*')
+            .order('created_at', { ascending: true })
+
+        if (error) {
+            throw new Error(error.message)
+        }
+        return data
+    }
+
+    // useQueryの実行結果オブジェクト{Tasks[],Error,isLoasing,...}を返す
+    return useQuery<Task[], Error>({ // <Task[], Error>はuseQueryTasks戻り型のジェネリック
+        queryKey: ['todos'],    // キャッシュのキー
+        queryFn: getTasks,      // キャッシュのデータを取得する関数
+        staleTime: Infinity,    // キャッシュの有効期限
+    })
+}
+```
+
+** データベース更新のカスタムhook
+- DB更新は useQueryClient, useMutation '@tanstack/react-query'
+- 実装例は hooks/useMutateTasks.ts
+- useQueryClientはreact内部のキャッシュへのハンドル.
+- mutationFnにDB(supabase)へのアクセスを定義する
+- onSuccessではDBの更新結果に応じてキャッシュを更新する
+- onSuccessにはmutationFnでreturnした値、つまり追加したデータが返る
+```tsx
+export const useMutateTask = () => {
+    const queryClient = useQueryClient()
+    const reset = useStore((state) => state.resetEditedTask)　// 必要な状態更新関数を取得
+
+    const createTaskMutation = useMutation({
+        mutationFn: async (task: Omit<Task, 'id' | 'created_at'>) => {
+            const { data, error } = await supabase.from('todos').insert(task)
+            if (error) throw new Error(error.message)
+            return data
+        },
+        onSuccess: (res) => {
+            const previousTodos = queryClient.getQueryData<Task[]>(['todos'])
+            if (previousTodos) {
+                queryClient.setQueryData(['todos'], [...previousTodos, res[0]])
+            }
+            reset()
+        },
+        onError: (err: any) => {
+            alert(err.message)
+            reset()
+        },
+    })
+}
+```
+
+** Task/Notice画面の表示
+- 以下のコンポーネントを作成
+-- スピナー
+-- 入力フォーム (EditedTaskの状態に応じて Input内容やButtonのラベルが変わる)
+-- タスクアイテム (編集/ゴミ箱ボタン付き. mutationに紐づく)
+- _app.tsx に <ReactQueryDevtools/>を追加しているので解析ツールボタンがある
